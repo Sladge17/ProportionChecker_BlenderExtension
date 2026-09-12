@@ -1,9 +1,11 @@
 import os
 
 import bpy
+import mathutils
 
 from .core import (
     AXIS_ROTATION,
+    axis_basis,
     compute_target_real,
     grid_layout,
     grid_to_world,
@@ -81,9 +83,6 @@ def _set_solid_texture_shading():
                     space.shading.color_type = "TEXTURE"
 
 
-AXIS_VIEW = {"X": "RIGHT", "Y": "FRONT", "Z": "TOP"}
-
-
 def _select_objects(objects):
     for obj in objects:
         obj.select_set(True)
@@ -93,7 +92,8 @@ def _select_objects(objects):
 
 
 def _frame_view_perpendicular(axis):
-    view_type = AXIS_VIEW[axis]
+    width, height, normal = axis_basis(axis)
+    q = mathutils.Matrix((width, height, normal)).transposed().to_quaternion()
     windows = []
     for wm in bpy.data.window_managers:
         windows.extend(wm.windows)
@@ -112,8 +112,10 @@ def _frame_view_perpendicular(axis):
                 with bpy.context.temp_override(
                     window=win, screen=screen, area=area, region=regions[0]
                 ):
-                    spaces[0].region_3d.view_perspective = "ORTHO"
-                    bpy.ops.view3d.view_axis(type=view_type)
+                    r3d = spaces[0].region_3d
+                    r3d.view_perspective = "ORTHO"
+                    r3d.view_rotation = q
+                    r3d.view_location = (0.0, 0.0, 0.0)
                     bpy.ops.view3d.view_selected()
             except Exception:
                 pass

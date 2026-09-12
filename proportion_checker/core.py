@@ -9,22 +9,44 @@ RASTER_EXTENSIONS = frozenset({
 
 # World axes that grid columns (u, plane width) and rows (v, plane height) map onto,
 # per chosen plane-normal axis, considering how the plane rotates (see AXIS_ROTATION).
-# Chosen so that in the corresponding axis view the width runs left-right and the
-# height up-down (TOP: X/Y, FRONT: X/Z, RIGHT: Y/Z).
+# Chosen so that the width runs left-right and the height up-down on screen
+# (Z: X/Y, X: Y/Z, Y: Z/X).
 AXIS_MAP = {
     "Z": ("X", "Y"),
     "X": ("Y", "Z"),
-    "Y": ("X", "Z"),
+    "Y": ("Z", "X"),
 }
 
 # Euler rotation (radians, Blender XYZ order, R = Rz*Ry*Rx) that orients a XY-plane
-# (normal +Z) onto the requested axis. The normal is chosen to face the corresponding
-# axis view (X:+X/RIGHT, Y:−Y/FRONT, Z:+Z/TOP).
+# (normal +Z) onto the requested axis. The plane normal (front face with the texture)
+# always points along the positive world axis: X:+X, Y:+Y, Z:+Z.
 AXIS_ROTATION = {
     "X": (math.pi / 2.0, 0.0, math.pi / 2.0),
-    "Y": (math.pi / 2.0, 0.0, 0.0),
+    "Y": (math.pi / 2.0, 3.0 * math.pi / 2.0, math.pi),
     "Z": (0.0, 0.0, 0.0),
 }
+
+
+def axis_basis(axis):
+    """World-space (width, height, normal) unit vectors of the plane basis for an axis.
+
+    Mirrors Blender's Euler XYZ composition (R = Rz*Ry*Rx, applied to the vector as
+    R*v) used for `obj.rotation_euler = AXIS_ROTATION[axis]`. Pure math, no bpy.
+    """
+    ex, ey, ez = AXIS_ROTATION[axis]
+    cx, sx = math.cos(ex), math.sin(ex)
+    cy, sy = math.cos(ey), math.sin(ey)
+    cz, sz = math.cos(ez), math.sin(ez)
+
+    def apply(v):
+        x, y, z = v
+        return (
+            x * cy * cz + y * (cz * sx * sy - cx * sz) + z * (cx * cz * sy + sx * sz),
+            x * cy * sz + y * (cx * cz + sx * sy * sz) + z * (-cz * sx + cx * sy * sz),
+            -x * sy + y * cy * sx + z * cx * cy,
+        )
+
+    return apply((1.0, 0.0, 0.0)), apply((0.0, 1.0, 0.0)), apply((0.0, 0.0, 1.0))
 
 
 def grid_shape(n):

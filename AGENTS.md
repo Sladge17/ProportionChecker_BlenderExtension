@@ -46,10 +46,14 @@ Functionality:
 - Plane height = 1 m (default); width keeps the image aspect ratio.
 - Grid columns (u) must follow the plane's **width** direction and rows (v) its
   **height** direction in world space *after* the `AXIS_ROTATION` is applied
-  (`AXIS_MAP` = {"Z": ("X","Y"), "X": ("Y","Z"), "Y": ("X","Z")}). The u/v axes are
-  chosen so each axis view shows the width left-right and height up-down (RIGHT view:
-  up is +Z, right is +Y). Plane normals face their axis view (X:+X/RIGHT, Y:−Y/FRONT,
-  Z:+Z/TOP).
+  (`AXIS_MAP` = {"Z": ("X","Y"), "X": ("Y","Z"), "Y": ("Z","X")}). The width/height
+  (via `core.axis_basis(axis)`, pure R = Rz*Ry*Rx) drive the perpendicular view: width
+  left-right, height up-down, normal toward the viewer.
+- Plane normals (front face with the texture) always point along the **positive** world
+  axis: X:+X, Y:+Y, Z:+Z (`AXIS_ROTATION` = {"X": (π/2, 0, π/2),
+  "Y": (π/2, 3π/2, π), "Z": (0, 0, 0)}). Be careful: Blender object Euler semantics
+  differ from a naive rotation chain — validate every new euler against
+  `obj.matrix_world` (or `axis_basis`) in live Blender.
 - One dedicated material per plane; the image is assigned to **Base Color**.
 - All planes live in a single collection named exactly `"Reference"`.
 - Scene shading: Solid mode with texture display.
@@ -57,10 +61,12 @@ Functionality:
   `LayerCollection.restrict_select`**, so it is implemented per-object as
   `obj.hide_select = True` (set on every plane after the build).
 - After building, the view is set **perpendicular to the grid** filling the viewport:
-  `region_3d.view_perspective = 'ORTHO'` + `view3d.view_axis` (`AXIS_VIEW = {"X":
-  "RIGHT", "Y": "FRONT", "Z": "TOP"}`) + `view3d.view_selected`, wrapped in a
-  `context.temp_override(window=..., screen=..., area=..., region=...)`. Files without
-  a matching window (extra screens) are skipped; headless mode (no window) skips
+  a custom ORTHO camera — `region_3d.view_rotation` derived from `axis_basis(axis)`
+  (`q = Matrix((width, height, normal)).transposed().to_quaternion()`, camera looks
+  along −normal so the front face faces the view, width on screen-right, height up) +
+  `region_3d.view_location = (0,0,0)` + `view3d.view_selected`, wrapped in a
+  `context.temp_override(window=..., screen=..., area=..., region=...)`. Screens without
+  a matching window (extra workspaces) are skipped; headless mode (no window) skips
   framing entirely. `view_selected` must run while planes are still selectable, so
   hide_select is applied *after* framing.
 

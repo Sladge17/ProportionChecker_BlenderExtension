@@ -96,7 +96,7 @@ class TestGridToWorld(unittest.TestCase):
         self.assertEqual(grid_to_world(1.0, 2.0, "X"), (0.0, 1.0, 2.0))
 
     def test_y_axis(self):
-        self.assertEqual(grid_to_world(1.0, 2.0, "Y"), (1.0, 0.0, 2.0))
+        self.assertEqual(grid_to_world(1.0, 2.0, "Y"), (2.0, 0.0, 1.0))
 
     def test_axis_map_consistent(self):
         for axis, (u_axis, v_axis) in AXIS_MAP.items():
@@ -119,7 +119,7 @@ class TestGridToWorld(unittest.TestCase):
                 self.assertEqual(v_axis, h_axis)
 
     def test_rotation_normals(self):
-        expected = {"X": 1.0, "Y": -1.0, "Z": 1.0}
+        expected = {"X": 1.0, "Y": 1.0, "Z": 1.0}
         for axis, euler in AXIS_ROTATION.items():
             with self.subTest(axis=axis):
                 normal = mathutils_vector_rotate((0.0, 0.0, 1.0), euler)
