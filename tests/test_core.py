@@ -96,7 +96,7 @@ class TestGridToWorld(unittest.TestCase):
         self.assertEqual(grid_to_world(1.0, 2.0, "X"), (0.0, 1.0, 2.0))
 
     def test_y_axis(self):
-        self.assertEqual(grid_to_world(1.0, 2.0, "Y"), (2.0, 0.0, 1.0))
+        self.assertEqual(grid_to_world(1.0, 2.0, "Y"), (1.0, 0.0, 2.0))
 
     def test_axis_map_consistent(self):
         for axis, (u_axis, v_axis) in AXIS_MAP.items():
@@ -106,12 +106,25 @@ class TestGridToWorld(unittest.TestCase):
                 self.assertIn(v_axis, "XYZ")
                 self.assertNotEqual(u_axis, v_axis)
 
+    def test_columns_follow_width_rows_follow_height(self):
+        for axis, euler in AXIS_ROTATION.items():
+            with self.subTest(axis=axis):
+                width_dir = mathutils_vector_rotate((1.0, 0.0, 0.0), euler)
+                height_dir = mathutils_vector_rotate((0.0, 1.0, 0.0), euler)
+                u_axis = "XYZ"[max(range(3), key=lambda i: abs(grid_to_world(1.0, 0.0, axis)[i]))]
+                v_axis = "XYZ"[max(range(3), key=lambda i: abs(grid_to_world(0.0, 1.0, axis)[i]))]
+                w_axis = "XYZ"[max(range(3), key=lambda i: abs(width_dir[i]))]
+                h_axis = "XYZ"[max(range(3), key=lambda i: abs(height_dir[i]))]
+                self.assertEqual(u_axis, w_axis)
+                self.assertEqual(v_axis, h_axis)
+
     def test_rotation_normals(self):
+        expected = {"X": 1.0, "Y": -1.0, "Z": 1.0}
         for axis, euler in AXIS_ROTATION.items():
             with self.subTest(axis=axis):
                 normal = mathutils_vector_rotate((0.0, 0.0, 1.0), euler)
                 primary = {"X": normal[0], "Y": normal[1], "Z": normal[2]}[axis]
-                self.assertAlmostEqual(primary, 1.0, places=6)
+                self.assertAlmostEqual(primary, expected[axis], places=6)
 
 
 def mathutils_vector_rotate(vec, euler):

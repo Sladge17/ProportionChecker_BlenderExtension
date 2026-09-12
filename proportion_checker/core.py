@@ -7,17 +7,22 @@ RASTER_EXTENSIONS = frozenset({
     ".png", ".jpg", ".jpeg", ".bmp", ".tga", ".tif", ".tiff", ".webp", ".exr", ".hdr",
 })
 
-# World axes that grid columns (u) and rows (v) map onto, per chosen plane-normal axis.
+# World axes that grid columns (u, plane width) and rows (v, plane height) map onto,
+# per chosen plane-normal axis, considering how the plane rotates (see AXIS_ROTATION).
+# Chosen so that in the corresponding axis view the width runs left-right and the
+# height up-down (TOP: X/Y, FRONT: X/Z, RIGHT: Y/Z).
 AXIS_MAP = {
     "Z": ("X", "Y"),
     "X": ("Y", "Z"),
-    "Y": ("Z", "X"),
+    "Y": ("X", "Z"),
 }
 
-# Euler rotation (radians) that orients a XY-plane (normal +Z) onto the requested axis.
+# Euler rotation (radians, Blender XYZ order, R = Rz*Ry*Rx) that orients a XY-plane
+# (normal +Z) onto the requested axis. The normal is chosen to face the corresponding
+# axis view (X:+X/RIGHT, Y:−Y/FRONT, Z:+Z/TOP).
 AXIS_ROTATION = {
-    "X": (0.0, math.pi / 2.0, 0.0),
-    "Y": (-math.pi / 2.0, 0.0, 0.0),
+    "X": (math.pi / 2.0, 0.0, math.pi / 2.0),
+    "Y": (math.pi / 2.0, 0.0, 0.0),
     "Z": (0.0, 0.0, 0.0),
 }
 

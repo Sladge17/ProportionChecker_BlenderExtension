@@ -44,6 +44,12 @@ Functionality:
 - Grid shape: `cols = ceil(sqrt(N))`, `rows = ceil(N / cols)`.
   Sanity check: 4→2x2, 5→3x2, 7→3x3, 9→3x3.
 - Plane height = 1 m (default); width keeps the image aspect ratio.
+- Grid columns (u) must follow the plane's **width** direction and rows (v) its
+  **height** direction in world space *after* the `AXIS_ROTATION` is applied
+  (`AXIS_MAP` = {"Z": ("X","Y"), "X": ("Y","Z"), "Y": ("X","Z")}). The u/v axes are
+  chosen so each axis view shows the width left-right and height up-down (RIGHT view:
+  up is +Z, right is +Y). Plane normals face their axis view (X:+X/RIGHT, Y:−Y/FRONT,
+  Z:+Z/TOP).
 - One dedicated material per plane; the image is assigned to **Base Color**.
 - All planes live in a single collection named exactly `"Reference"`.
 - Scene shading: Solid mode with texture display.
