@@ -21,7 +21,7 @@ class PC_Properties(bpy.types.PropertyGroup):
     plane_axis: bpy.props.EnumProperty(
         name="Направление нормали",
         description="Ось, вдоль которой направлена нормаль плоскостей сетки",
-        default="Z",
+        default="X",
         items=(
             ("X", "X", "Нормаль вдоль оси X"),
             ("Y", "Y", "Нормаль вдоль оси Y"),
