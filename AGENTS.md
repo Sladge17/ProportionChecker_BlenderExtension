@@ -1,30 +1,42 @@
 # AGENTS.md
 
-## Status
+## Project
 
-This repository is a fresh, empty project ("ProportionChecker") — a greenfield Blender
-add-on built with the `bpy` Python library. There is currently:
+Blender add-on **ProportionChecker**. Spec lives in `prompt.txt` (Russian) and is the
+source of truth; the working tree currently has no add-on code yet. Functionality:
 
-- No source files, manifests, or configuration of any kind.
-- No commits on `master` (the git repo is initialized but has no history).
-- No build, test, lint, or CI tooling set up.
+1. Load a folder path, scan it for raster images.
+2. Build a grid of planes (collection `"Reference"`), one plane per image, centered on
+   the world origin, filled row by row.
+3. Compute target real sizes via proportions and show them in the UI.
 
-## Project intent
+## Runtime / how to run code
 
-- Purpose: a Blender add-on for checking proportions (name suggests checking/
-  validating proportions of objects or meshes).
-- Stack: Python using the `bpy` library. The add-on will run inside Blender's
-  bundled Python interpreter.
-
-## For agents
-
-- Target environment is Blender's embedded Python, not a standalone interpreter —
-  `bpy` is only available when the code runs inside Blender (or via
-  `blender --background` / `--python`). Do not run add-on code with a plain
+- Code runs in Blender's embedded Python (`bpy`) — never run add-on code with a plain
   `python` interpreter.
-- Before writing code, consider how it will be installed/tested:
-  `blender --background --python-expr` for headless scripted testing, or installing
-  the add-on via `Edit > Preferences > Add-ons` for interactive use.
-- There are no existing conventions to preserve; anything created here is greenfield.
-- If the intended layout, add-on registration approach, or target Blender version
-  matters, ask the user before proceeding.
+- Target Blender 5.0+. Installed here: Blender 5.2.1 (snap, `/snap/bin/blender`).
+  Re-check deprecations before relying on old `.bpy` APIs.
+- A live Blender is connected via the Blender MCP server — use its tools
+  (`execute_blender_code`, scene/object inspection, screenshots) to verify bpy code and
+  scene state; it's much faster than restarting headless runs.
+- Headless check: `blender --background --python-expr "..."`.
+- Add-on must be installable via `Preferences > Add-ons` (bl_info + register/unregister).
+
+## Spec facts easy to get wrong (from prompt.txt)
+
+- Grid shape: `cols = ceil(sqrt(N))`, `rows = ceil(N / cols)`.
+  Sanity check: 4→2x2, 5→3x2, 7→3x3, 9→3x3.
+- Plane height = 1 m (default); width keeps the image aspect ratio.
+- One dedicated material per plane; the image is assigned to **Base Color**.
+- All planes live in a single collection named exactly `"Reference"`.
+- Scene shading: Solid mode with texture display.
+
+## UI (exact from spec)
+
+- Panel in the 3D View sidebar: `bl_space_type = 'VIEW_3D'`, `bl_region_type = 'UI'`.
+- Directory path input field.
+- Picker for the base plane the grid is built on.
+- 2×2 numeric layout (mirroring `prompt.txt`):
+  row 1: reference size on image / reference size real · row 2: target size on image /
+  target size real. The **target size real** cell (row 2, col 2) is **read-only**.
+- One button computes target size real by proportions.
