@@ -12,17 +12,56 @@ bl_info = {
 }
 
 
+def _find_package_root():
+    import os
+
+    def is_package(root):
+        return os.path.isdir(os.path.join(root, "proportion_checker")) and os.path.isfile(
+            os.path.join(root, "proportion_checker", "__init__.py")
+        )
+
+    seeds = [os.path.dirname(os.path.abspath(__file__)), os.getcwd()]
+    try:
+        import bpy
+
+        if bpy.data.filepath:
+            seeds.append(os.path.dirname(os.path.abspath(bpy.data.filepath)))
+        for text in bpy.data.texts:
+            if text.filepath:
+                seeds.append(os.path.abspath(text.filepath))
+    except Exception:
+        pass
+
+    explored = set()
+    for seed in seeds:
+        cur = os.path.abspath(seed)
+        while cur not in explored:
+            explored.add(cur)
+            if is_package(cur):
+                return cur
+            nxt = os.path.dirname(cur)
+            if nxt == cur:
+                break
+            cur = nxt
+    return None
+
+
 def _modules():
     try:
         from . import operators, ui
     except ImportError:
         import importlib
-        import os
         import sys
 
-        parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if parent not in sys.path:
-            sys.path.insert(0, parent)
+        root = _find_package_root()
+        if root is None:
+            raise ImportError(
+                "Не удалось найти пакет 'proportion_checker'. Запускайте "
+                "__init__.py из папки пакета или установите аддон через "
+                "Preferences > Add-ons."
+            )
+        if root not in sys.path:
+            sys.path.insert(0, root)
         operators = importlib.import_module("proportion_checker.operators")
         ui = importlib.import_module("proportion_checker.ui")
     return operators, ui
@@ -57,6 +96,7 @@ def register():
     for cls in (
         operators.PC_OT_BuildGrid,
         operators.PC_OT_Compute,
+        operators.PC_OT_CopyTarget,
         operators.PC_OT_SelectDirectory,
         ui.PC_PT_Main,
     ):
@@ -72,6 +112,7 @@ def unregister():
         (
             operators.PC_OT_BuildGrid,
             operators.PC_OT_Compute,
+            operators.PC_OT_CopyTarget,
             operators.PC_OT_SelectDirectory,
             ui.PC_PT_Main,
         )

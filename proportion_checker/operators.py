@@ -81,6 +81,44 @@ def _set_solid_texture_shading():
                     space.shading.color_type = "TEXTURE"
 
 
+AXIS_VIEW = {"X": "RIGHT", "Y": "FRONT", "Z": "TOP"}
+
+
+def _select_objects(objects):
+    for obj in objects:
+        obj.select_set(True)
+        obj.hide_set(False)
+    if objects:
+        bpy.context.view_layer.objects.active = objects[0]
+
+
+def _frame_view_perpendicular(axis):
+    view_type = AXIS_VIEW[axis]
+    windows = []
+    for wm in bpy.data.window_managers:
+        windows.extend(wm.windows)
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            if area.type != "VIEW_3D":
+                continue
+            regions = [r for r in area.regions if r.type == "WINDOW"]
+            spaces = [s for s in area.spaces if s.type == "VIEW_3D"]
+            if not regions or not spaces:
+                continue
+            win = next((w for w in windows if w.screen == screen), None)
+            if win is None:
+                continue
+            try:
+                with bpy.context.temp_override(
+                    window=win, screen=screen, area=area, region=regions[0]
+                ):
+                    spaces[0].region_3d.view_perspective = "ORTHO"
+                    bpy.ops.view3d.view_axis(type=view_type)
+                    bpy.ops.view3d.view_selected()
+            except Exception:
+                pass
+
+
 class PC_OT_BuildGrid(bpy.types.Operator):
     bl_idname = "pc.build_grid"
     bl_label = "Построить сетку"
@@ -127,6 +165,7 @@ class PC_OT_BuildGrid(bpy.types.Operator):
             return {"CANCELLED"}
 
         layouts = grid_layout([p[2] for p in planes], plane_height=props.plane_height)
+        created = []
         for item, (fp, img, width) in zip(layouts, planes):
             stem = os.path.splitext(os.path.basename(fp))[0]
             mesh = _plane_mesh(stem, width, props.plane_height)
@@ -137,8 +176,16 @@ class PC_OT_BuildGrid(bpy.types.Operator):
             obj[PC_MARK] = fp
             obj.data.materials.append(_build_material(stem, img))
             col.objects.link(obj)
+            created.append(obj)
 
         _set_solid_texture_shading()
+        bpy.context.view_layer.update()
+
+        _select_objects(created)
+        _frame_view_perpendicular(props.plane_axis)
+
+        for obj in created:
+            obj.hide_select = True
         bpy.context.view_layer.update()
 
         self.report(
@@ -168,6 +215,30 @@ class PC_OT_Compute(bpy.types.Operator):
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
         self.report({"INFO"}, f"Целевой реальный размер: {value:.6g}")
+        return {"FINISHED"}
+
+
+class PC_OT_CopyTarget(bpy.types.Operator):
+    bl_idname = "pc.copy_target"
+    bl_label = "Копировать"
+    bl_description = "Копирует целевой реальный размер в буфер обмена"
+    bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
+    def execute(self, context):
+        props = context.scene.pc
+        try:
+            value = compute_target_real(
+                props.ref_size_img, props.ref_size_real, props.target_size_img
+            )
+        except ValueError as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+        context.window_manager.clipboard = f"{value:g}"
+        self.report({"INFO"}, f"Скопировано: {value:g}")
         return {"FINISHED"}
 
 

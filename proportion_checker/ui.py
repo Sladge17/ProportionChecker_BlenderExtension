@@ -113,3 +113,4 @@ class PC_PT_Main(bpy.types.Panel):
         ro = row.row(align=True)
         ro.enabled = False
         ro.prop(props, "target_size_real", text="")
+        row.operator("pc.copy_target", text="", icon="COPYDOWN")
