@@ -240,22 +240,3 @@ class PC_OT_CopyTarget(bpy.types.Operator):
         context.window_manager.clipboard = f"{value:g}"
         self.report({"INFO"}, f"Скопировано: {value:g}")
         return {"FINISHED"}
-
-
-class PC_OT_SelectDirectory(bpy.types.Operator):
-    bl_idname = "pc.select_directory"
-    bl_label = "Выбрать директорию"
-    bl_description = "Открывает файловый менеджер для выбора директории"
-    bl_options = {"REGISTER"}
-
-    directory: bpy.props.StringProperty(subtype="DIR_PATH")
-
-    def invoke(self, context, event):
-        self.directory = context.scene.pc.directory
-        context.window_manager.fileselect_add(self)
-        return {"RUNNING_MODAL"}
-
-    def execute(self, context):
-        if self.directory:
-            context.scene.pc.directory = self.directory
-        return {"FINISHED"}

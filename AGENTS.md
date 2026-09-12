@@ -8,7 +8,7 @@ source of truth. Package layout:
 - `proportion_checker/core.py` — pure logic (grid shape/layout/axes, proportions,
   directory scan); no `bpy`, unit-testable.
 - `proportion_checker/operators.py` — `PC_OT_BuildGrid`, `PC_OT_Compute`,
-  `PC_OT_CopyTarget`, `PC_OT_SelectDirectory`, purge and shading helpers.
+  `PC_OT_CopyTarget`, purge and shading helpers.
 - `proportion_checker/ui.py` — `PC_Properties` (Scene) and the sidebar `PC_PT_Main`.
 - `proportion_checker/__init__.py` — `bl_info` and idempotent `register`/`unregister`.
 

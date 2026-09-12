@@ -78,7 +78,6 @@ class PC_PT_Main(bpy.types.Panel):
         box.label(text="Исходные данные", icon="FILE_FOLDER")
         row = box.row(align=True)
         row.prop(props, "directory", text="")
-        row.operator("pc.select_directory", text="", icon="FOLDER_REDIRECT")
         box.label(text=f"Изображений: {_count_images(props.directory)}")
 
         box = layout.box()

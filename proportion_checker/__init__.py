@@ -97,7 +97,6 @@ def register():
         operators.PC_OT_BuildGrid,
         operators.PC_OT_Compute,
         operators.PC_OT_CopyTarget,
-        operators.PC_OT_SelectDirectory,
         ui.PC_PT_Main,
     ):
         _register_class(cls)
@@ -113,7 +112,6 @@ def unregister():
             operators.PC_OT_BuildGrid,
             operators.PC_OT_Compute,
             operators.PC_OT_CopyTarget,
-            operators.PC_OT_SelectDirectory,
             ui.PC_PT_Main,
         )
     ):
