@@ -63,10 +63,10 @@ Functionality:
   `obj.matrix_world` (or `axis_basis`) in live Blender.
 - One dedicated material per plane; the image is assigned to **Base Color**.
 - All planes live in a single collection named exactly `"Reference"`.
+- The planes are **selectable** but transform-locked: each object gets
+  `lock_location = lock_rotation = lock_scale = (True, True, True)` (movement,
+  rotation and scaling via the UI are disabled).
 - Scene shading: Solid mode with texture display.
-- The `"Reference"` collection is **non-selectable**: Blender 5 has **no
-  `LayerCollection.restrict_select`**, so it is implemented per-object as
-  `obj.hide_select = True` (set on every plane after the build).
 - After building, the view is set **perpendicular to the grid** filling the viewport:
   a custom ORTHO camera — `region_3d.view_rotation` derived from `axis_basis(axis)`
   (`q = Matrix((width, height, normal)).transposed().to_quaternion()`, camera looks
@@ -74,8 +74,7 @@ Functionality:
   `region_3d.view_location = (0,0,0)` + `view3d.view_selected`, wrapped in a
   `context.temp_override(window=..., screen=..., area=..., region=...)`. Screens without
   a matching window (extra workspaces) are skipped; headless mode (no window) skips
-  framing entirely. `view_selected` must run while planes are still selectable, so
-  hide_select is applied *after* framing.
+  framing entirely.
 
 ## UI (exact from spec)
 

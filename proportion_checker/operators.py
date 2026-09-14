@@ -131,9 +131,9 @@ def build_grid(context, report=None, frame=False):
 
     A no-op (returns 0) when the path is empty, missing or contains no rasters —
     the existing grid is left untouched in those cases. Returns the number of
-    planes built. `frame` (default False) additionally selects the new planes and
-    aligns the view perpendicular to the grid — used only when the plane-normal
-    axis changes.
+    planes built. `frame` (default False) additionally selects the new planes to
+    align the view perpendicular to the grid (used only when the plane-normal axis
+    or the directory changes); after framing the planes are deselected again.
     """
     if context is None or getattr(context, "scene", None) is None:
         return 0
@@ -184,6 +184,9 @@ def build_grid(context, report=None, frame=False):
         obj.location = grid_to_world(
             item["u"], item["v"], props.plane_axis, props.offset
         )
+        obj.lock_location = (True, True, True)
+        obj.lock_rotation = (True, True, True)
+        obj.lock_scale = (True, True, True)
         obj[PC_MARK] = fp
         obj.data.materials.append(_build_material(stem, img))
         col.objects.link(obj)
@@ -197,7 +200,9 @@ def build_grid(context, report=None, frame=False):
         _frame_view_perpendicular(props.plane_axis)
 
     for obj in created:
-        obj.hide_select = True
+        obj.select_set(False)
+    if created and bpy.context.view_layer.objects.active in created:
+        bpy.context.view_layer.objects.active = None
     bpy.context.view_layer.update()
 
     _report(
