@@ -48,6 +48,12 @@ class PC_Properties(bpy.types.PropertyGroup):
         min=0.0,
         unit="LENGTH",
     )
+    offset: bpy.props.FloatProperty(
+        name="Смещение вдоль нормали",
+        description="Смещение всей сетки вдоль выбранного направления нормали",
+        default=0.0,
+        unit="LENGTH",
+    )
     ref_size_img: bpy.props.FloatProperty(
         name="Опорный размер на изображении", default=1.0
     )
@@ -101,6 +107,7 @@ class PC_PT_Main(bpy.types.Panel):
         row = box.row(align=True)
         row.prop(props, "gap_h")
         row.prop(props, "gap_v")
+        box.prop(props, "offset")
         box.label(text="Направление нормали:")
         row = box.row(align=True)
         row.prop_enum(props, "plane_axis", "X")

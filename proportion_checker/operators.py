@@ -179,7 +179,9 @@ class PC_OT_BuildGrid(bpy.types.Operator):
             mesh[PC_MARK] = True
             obj = bpy.data.objects.new(stem, mesh)
             obj.rotation_euler = AXIS_ROTATION[props.plane_axis]
-            obj.location = grid_to_world(item["u"], item["v"], props.plane_axis)
+            obj.location = grid_to_world(
+                item["u"], item["v"], props.plane_axis, props.offset
+            )
             obj[PC_MARK] = fp
             obj.data.materials.append(_build_material(stem, img))
             col.objects.link(obj)

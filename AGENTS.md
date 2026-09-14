@@ -48,6 +48,9 @@ Functionality:
   (`pc.gap_h`, `pc.gap_v` in metres, both default to 0). Layout in `core.grid_layout(
   widths, plane_height, gap_h, gap_v)`: in-row step = (w_i+w_{i+1})/2 + gap_h,
   row step = plane_height + gap_v; grid stays centered on the origin.
+- Configurable grid offset **along the chosen normal axis only** (`pc.offset`,
+  metres, default 0, may be negative): `grid_to_world(u, v, axis, offset)` adds
+  `offset` onto the `axis` world component; u/v mapping unchanged.
 - Grid columns (u) must follow the plane's **width** direction and rows (v) its
   **height** direction in world space *after* the `AXIS_ROTATION` is applied
   (`AXIS_MAP` = {"Z": ("X","Y"), "X": ("Y","Z"), "Y": ("Z","X")}). The width/height

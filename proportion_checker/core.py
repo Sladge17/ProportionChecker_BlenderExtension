@@ -113,12 +113,17 @@ def grid_layout(widths, plane_height=1.0, gap_h=0.0, gap_v=0.0):
     return layout
 
 
-def grid_to_world(u, v, axis):
-    """Map local grid offsets (u along columns, v along rows) to world coordinates."""
+def grid_to_world(u, v, axis, offset=0.0):
+    """Map local grid offsets (u along columns, v along rows) to world coordinates.
+
+    `offset` shifts the whole grid along the plane-normal axis (`axis` itself),
+    defaulting to 0.
+    """
     u_axis, v_axis = AXIS_MAP[axis]
     vec = {"X": 0.0, "Y": 0.0, "Z": 0.0}
     vec[u_axis] = u
     vec[v_axis] = v
+    vec[axis] = offset
     return (vec["X"], vec["Y"], vec["Z"])
 
 

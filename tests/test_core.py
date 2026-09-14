@@ -113,6 +113,15 @@ class TestGridToWorld(unittest.TestCase):
     def test_y_axis(self):
         self.assertEqual(grid_to_world(1.0, 2.0, "Y"), (2.0, 0.0, 1.0))
 
+    def test_normal_offset(self):
+        self.assertEqual(grid_to_world(1.0, 2.0, "Z", offset=5.0), (1.0, 2.0, 5.0))
+        self.assertEqual(grid_to_world(1.0, 2.0, "X", offset=5.0), (5.0, 1.0, 2.0))
+        self.assertEqual(grid_to_world(1.0, 2.0, "Y", offset=5.0), (2.0, 5.0, 1.0))
+        # negative = против направления нормали
+        self.assertEqual(grid_to_world(1.0, 2.0, "Y", offset=-2.0), (2.0, -2.0, 1.0))
+        # по умолчанию ноль
+        self.assertEqual(grid_to_world(1.0, 2.0, "Z"), (1.0, 2.0, 0.0))
+
     def test_axis_map_consistent(self):
         for axis, (u_axis, v_axis) in AXIS_MAP.items():
             with self.subTest(axis=axis):
