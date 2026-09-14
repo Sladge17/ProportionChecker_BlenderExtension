@@ -80,9 +80,24 @@ class TestGridLayout(unittest.TestCase):
         self.assertEqual(len(row_lefts), 1)
         self.assertAlmostEqual(next(iter(row_lefts)), -1.25, places=6)
 
-    def test_gap(self):
-        layout = grid_layout([1.0, 1.0], gap=0.5)
+    def test_gap_h(self):
+        layout = grid_layout([1.0, 1.0], gap_h=0.5)
         self.assertAlmostEqual(layout[1]["u"] - layout[0]["u"], 1.5)
+
+    def test_gap_v(self):
+        layout = grid_layout([1.0, 1.0, 1.0, 1.0], gap_v=0.5)
+        self.assertEqual(len(layout), 4)
+        self.assertAlmostEqual(layout[0]["v"] - layout[2]["v"], 1.5)
+        # default is zero
+        layout = grid_layout([1.0, 1.0, 1.0, 1.0])
+        self.assertAlmostEqual(layout[0]["v"] - layout[2]["v"], 1.0)
+
+    def test_gaps_keep_centered(self):
+        layout = grid_layout([1.0, 1.0, 1.0, 1.0], gap_h=0.5, gap_v=0.5)
+        edges_u = [p["u"] - p["width"] / 2 for p in layout] + [p["u"] + p["width"] / 2 for p in layout]
+        edges_v = [p["v"] - p["height"] / 2 for p in layout] + [p["v"] + p["height"] / 2 for p in layout]
+        self.assertAlmostEqual((min(edges_u) + max(edges_u)) / 2.0, 0.0, places=6)
+        self.assertAlmostEqual((min(edges_v) + max(edges_v)) / 2.0, 0.0, places=6)
 
     def test_empty(self):
         self.assertEqual(grid_layout([]), [])

@@ -44,6 +44,10 @@ Functionality:
 - Grid shape: `cols = ceil(sqrt(N))`, `rows = ceil(N / cols)`.
   Sanity check: 4→2x2, 5→3x2, 7→3x3, 9→3x3.
 - Plane height = 1 m (default); width keeps the image aspect ratio.
+- Configurable distance between planes, **separate horizontal and vertical**
+  (`pc.gap_h`, `pc.gap_v` in metres, both default to 0). Layout in `core.grid_layout(
+  widths, plane_height, gap_h, gap_v)`: in-row step = (w_i+w_{i+1})/2 + gap_h,
+  row step = plane_height + gap_v; grid stays centered on the origin.
 - Grid columns (u) must follow the plane's **width** direction and rows (v) its
   **height** direction in world space *after* the `AXIS_ROTATION` is applied
   (`AXIS_MAP` = {"Z": ("X","Y"), "X": ("Y","Z"), "Y": ("Z","X")}). The width/height

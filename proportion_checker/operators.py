@@ -166,7 +166,12 @@ class PC_OT_BuildGrid(bpy.types.Operator):
             self.report({"ERROR"}, "Не удалось загрузить ни одного изображения")
             return {"CANCELLED"}
 
-        layouts = grid_layout([p[2] for p in planes], plane_height=props.plane_height)
+        layouts = grid_layout(
+            [p[2] for p in planes],
+            plane_height=props.plane_height,
+            gap_h=props.gap_h,
+            gap_v=props.gap_v,
+        )
         created = []
         for item, (fp, img, width) in zip(layouts, planes):
             stem = os.path.splitext(os.path.basename(fp))[0]

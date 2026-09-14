@@ -34,6 +34,20 @@ class PC_Properties(bpy.types.PropertyGroup):
         min=0.0001,
         unit="LENGTH",
     )
+    gap_h: bpy.props.FloatProperty(
+        name="По горизонтали",
+        description="Расстояние между плоскостями по горизонтали",
+        default=0.0,
+        min=0.0,
+        unit="LENGTH",
+    )
+    gap_v: bpy.props.FloatProperty(
+        name="По вертикали",
+        description="Расстояние между плоскостями по вертикали",
+        default=0.0,
+        min=0.0,
+        unit="LENGTH",
+    )
     ref_size_img: bpy.props.FloatProperty(
         name="Опорный размер на изображении", default=1.0
     )
@@ -83,6 +97,10 @@ class PC_PT_Main(bpy.types.Panel):
         box = layout.box()
         box.label(text="Сетка плоскостей", icon="GRID")
         box.prop(props, "plane_height")
+        box.label(text="Расстояние между плоскостями:")
+        row = box.row(align=True)
+        row.prop(props, "gap_h")
+        row.prop(props, "gap_v")
         box.label(text="Направление нормали:")
         row = box.row(align=True)
         row.prop_enum(props, "plane_axis", "X")

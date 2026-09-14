@@ -72,10 +72,12 @@ def plane_width(img_w, img_h, plane_height=1.0):
     return plane_height * (img_w / img_h)
 
 
-def grid_layout(widths, plane_height=1.0, gap=0.0):
+def grid_layout(widths, plane_height=1.0, gap_h=0.0, gap_v=0.0):
     """Compute per-plane grid placement.
 
     Fills the grid row by row, rows left-aligned, whole grid centered on the origin.
+    `gap_h` is the distance between neighbouring planes in a row (horizontal),
+    `gap_v` between rows (vertical); both default to 0.
     Returns a list of dicts: {index, row, col, u, v, width, height}.
     u/v are offsets along the grid-column/row directions (centered on 0,0).
     """
@@ -85,10 +87,11 @@ def grid_layout(widths, plane_height=1.0, gap=0.0):
     cols, rows = grid_shape(n)
     row_widths = [
         sum(widths[r * cols:(r + 1) * cols])
+        + max(0, len(widths[r * cols:(r + 1) * cols]) - 1) * gap_h
         for r in range(rows)
     ]
     grid_width = max(row_widths)
-    grid_height = rows * plane_height + (rows - 1) * gap
+    grid_height = rows * plane_height + (rows - 1) * gap_v
     left = -grid_width / 2.0
 
     row_offsets = [0.0] * rows
@@ -96,8 +99,8 @@ def grid_layout(widths, plane_height=1.0, gap=0.0):
     for i, w in enumerate(widths):
         r = i // cols
         u = left + row_offsets[r] + w / 2.0
-        v = grid_height / 2.0 - r * (plane_height + gap) - plane_height / 2.0
-        row_offsets[r] += w + gap
+        v = grid_height / 2.0 - r * (plane_height + gap_v) - plane_height / 2.0
+        row_offsets[r] += w + gap_h
         layout.append({
             "index": i,
             "row": r,
