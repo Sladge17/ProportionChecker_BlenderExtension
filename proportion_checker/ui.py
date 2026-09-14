@@ -3,6 +3,27 @@ import os
 import bpy
 
 from .core import compute_target_real, scan_directory
+from .operators import build_grid
+
+
+def _rebuild_grid(self, context):
+    scene = getattr(context, "scene", None)
+    if scene is None:
+        return
+    try:
+        build_grid(context)
+    except Exception:
+        pass
+
+
+def _rebuild_grid_framing(self, context):
+    scene = getattr(context, "scene", None)
+    if scene is None:
+        return
+    try:
+        build_grid(context, frame=True)
+    except Exception:
+        pass
 
 
 def _count_images(path):
@@ -16,12 +37,13 @@ def _count_images(path):
 
 class PC_Properties(bpy.types.PropertyGroup):
     directory: bpy.props.StringProperty(
-        name="Директория", subtype="DIR_PATH", default=""
+        name="Директория", subtype="DIR_PATH", default="", update=_rebuild_grid_framing
     )
     plane_axis: bpy.props.EnumProperty(
         name="Направление нормали",
         description="Ось, вдоль которой направлена нормаль плоскостей сетки",
         default="X",
+        update=_rebuild_grid_framing,
         items=(
             ("X", "X", "Нормаль вдоль оси X"),
             ("Y", "Y", "Нормаль вдоль оси Y"),
@@ -33,6 +55,7 @@ class PC_Properties(bpy.types.PropertyGroup):
         default=1.0,
         min=0.0001,
         unit="LENGTH",
+        update=_rebuild_grid,
     )
     gap_h: bpy.props.FloatProperty(
         name="По горизонтали",
@@ -40,6 +63,7 @@ class PC_Properties(bpy.types.PropertyGroup):
         default=0.0,
         min=0.0,
         unit="LENGTH",
+        update=_rebuild_grid,
     )
     gap_v: bpy.props.FloatProperty(
         name="По вертикали",
@@ -47,12 +71,14 @@ class PC_Properties(bpy.types.PropertyGroup):
         default=0.0,
         min=0.0,
         unit="LENGTH",
+        update=_rebuild_grid,
     )
     offset: bpy.props.FloatProperty(
         name="Смещение вдоль нормали",
         description="Смещение всей сетки вдоль выбранного направления нормали",
         default=0.0,
         unit="LENGTH",
+        update=_rebuild_grid,
     )
     ref_size_img: bpy.props.FloatProperty(
         name="Опорный размер на изображении", default=1.0
@@ -113,7 +139,6 @@ class PC_PT_Main(bpy.types.Panel):
         row.prop_enum(props, "plane_axis", "X")
         row.prop_enum(props, "plane_axis", "Y")
         row.prop_enum(props, "plane_axis", "Z")
-        box.operator("pc.build_grid", text="Построить сетку", icon="IMPORT")
 
         box = layout.box()
         box.label(text="Пропорции", icon="DRIVER_DISTANCE")

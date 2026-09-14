@@ -82,6 +82,14 @@ Functionality:
 - Panel in the 3D View sidebar: `bl_space_type = 'VIEW_3D'`, `bl_region_type = 'UI'`.
 - Directory path input field.
 - Picker for the base plane the grid is built on.
+- The grid is built **automatically**: `PC_Properties` layout fields (`directory`,
+  `plane_axis`, `plane_height`, `gap_h`, `gap_v`, `offset`) carry an `update=`
+  callback that calls `operators.build_grid(context)`. There is **no build button**.
+  `build_grid` is a no-op (existing grid kept) when the path is empty, missing or
+  contains no rasters. **View framing happens on `plane_axis` change and on
+  `directory` change** (`ui._rebuild_grid_framing` → `build_grid(frame=True)`); the
+  other fields (`plane_height`, `gap_h`, `gap_v`, `offset`) rebuild without touching
+  the camera.
 - 2×2 numeric layout (mirroring `prompt.txt`):
   row 1: reference size on image / reference size real · row 2: target size on image /
   target size real. The **target size real** cell (row 2, col 2) is **read-only**.

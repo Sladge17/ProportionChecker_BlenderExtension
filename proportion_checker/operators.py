@@ -121,9 +121,96 @@ def _frame_view_perpendicular(axis):
                 pass
 
 
+def _report(pa_report, level, msg):
+    if pa_report is not None:
+        pa_report({level}, msg)
+
+
+def build_grid(context, report=None, frame=False):
+    """Scan `context.scene.pc.directory` and (re)build the reference grid.
+
+    A no-op (returns 0) when the path is empty, missing or contains no rasters —
+    the existing grid is left untouched in those cases. Returns the number of
+    planes built. `frame` (default False) additionally selects the new planes and
+    aligns the view perpendicular to the grid — used only when the plane-normal
+    axis changes.
+    """
+    if context is None or getattr(context, "scene", None) is None:
+        return 0
+    props = context.scene.pc
+    path = props.directory
+    if not path:
+        return 0
+    try:
+        files = scan_directory(path)
+    except NotADirectoryError:
+        return 0
+    if not files:
+        return 0
+
+    col = _ensure_collection(context)
+
+    planes = []
+    skipped = 0
+    for fp in files:
+        try:
+            img = _load_image(fp)
+            w, h = img.size
+            width = plane_width(w, h, props.plane_height)
+        except Exception as exc:
+            skipped += 1
+            _report(report, "WARNING", f"Пропущено {os.path.basename(fp)}: {exc}")
+            continue
+        planes.append((fp, img, width))
+
+    if not planes:
+        _report(report, "ERROR", "Не удалось загрузить ни одного изображения")
+        return 0
+
+    _purge_addon_data()
+    layouts = grid_layout(
+        [p[2] for p in planes],
+        plane_height=props.plane_height,
+        gap_h=props.gap_h,
+        gap_v=props.gap_v,
+    )
+    created = []
+    for item, (fp, img, width) in zip(layouts, planes):
+        stem = os.path.splitext(os.path.basename(fp))[0]
+        mesh = _plane_mesh(stem, width, props.plane_height)
+        mesh[PC_MARK] = True
+        obj = bpy.data.objects.new(stem, mesh)
+        obj.rotation_euler = AXIS_ROTATION[props.plane_axis]
+        obj.location = grid_to_world(
+            item["u"], item["v"], props.plane_axis, props.offset
+        )
+        obj[PC_MARK] = fp
+        obj.data.materials.append(_build_material(stem, img))
+        col.objects.link(obj)
+        created.append(obj)
+
+    _set_solid_texture_shading()
+    bpy.context.view_layer.update()
+
+    if frame:
+        _select_objects(created)
+        _frame_view_perpendicular(props.plane_axis)
+
+    for obj in created:
+        obj.hide_select = True
+    bpy.context.view_layer.update()
+
+    _report(
+        report,
+        "INFO",
+        f"Построено плоскостей: {len(planes)} (пропущено: {skipped})",
+    )
+    return len(planes)
+
+
 class PC_OT_BuildGrid(bpy.types.Operator):
     bl_idname = "pc.build_grid"
-    bl_label = "Построить сетку"
+    bl_label = "Построить сетку (перестроение автоматическое)"
     bl_description = "Сканирует директорию и строит сетку плоскостей с изображениями"
     bl_options = {"REGISTER"}
 
@@ -132,75 +219,8 @@ class PC_OT_BuildGrid(bpy.types.Operator):
         return context.scene is not None
 
     def execute(self, context):
-        props = context.scene.pc
-        path = props.directory
-        if not path:
-            self.report({"ERROR"}, "Укажите директорию с изображениями")
+        if build_grid(context, self.report, frame=True) == 0:
             return {"CANCELLED"}
-        try:
-            files = scan_directory(path)
-        except NotADirectoryError:
-            self.report({"ERROR"}, f"Директория не существует: {path}")
-            return {"CANCELLED"}
-        if not files:
-            self.report({"ERROR"}, "В директории не найдено растровых изображений")
-            return {"CANCELLED"}
-
-        _purge_addon_data()
-        col = _ensure_collection(context)
-
-        planes = []
-        skipped = 0
-        for fp in files:
-            try:
-                img = _load_image(fp)
-                w, h = img.size
-                width = plane_width(w, h, props.plane_height)
-            except Exception as exc:
-                skipped += 1
-                self.report({"WARNING"}, f"Пропущено {os.path.basename(fp)}: {exc}")
-                continue
-            planes.append((fp, img, width))
-
-        if not planes:
-            self.report({"ERROR"}, "Не удалось загрузить ни одного изображения")
-            return {"CANCELLED"}
-
-        layouts = grid_layout(
-            [p[2] for p in planes],
-            plane_height=props.plane_height,
-            gap_h=props.gap_h,
-            gap_v=props.gap_v,
-        )
-        created = []
-        for item, (fp, img, width) in zip(layouts, planes):
-            stem = os.path.splitext(os.path.basename(fp))[0]
-            mesh = _plane_mesh(stem, width, props.plane_height)
-            mesh[PC_MARK] = True
-            obj = bpy.data.objects.new(stem, mesh)
-            obj.rotation_euler = AXIS_ROTATION[props.plane_axis]
-            obj.location = grid_to_world(
-                item["u"], item["v"], props.plane_axis, props.offset
-            )
-            obj[PC_MARK] = fp
-            obj.data.materials.append(_build_material(stem, img))
-            col.objects.link(obj)
-            created.append(obj)
-
-        _set_solid_texture_shading()
-        bpy.context.view_layer.update()
-
-        _select_objects(created)
-        _frame_view_perpendicular(props.plane_axis)
-
-        for obj in created:
-            obj.hide_select = True
-        bpy.context.view_layer.update()
-
-        self.report(
-            {"INFO"},
-            f"Построено плоскостей: {len(planes)} (пропущено: {skipped})",
-        )
         return {"FINISHED"}
 
 
