@@ -91,8 +91,10 @@ Functionality:
   the camera.
 - 2×2 numeric layout (mirroring `prompt.txt`):
   row 1: reference size on image / reference size real · row 2: target size on image /
-  target size real. The **target size real** cell (row 2, col 2) is **read-only**.
-- One button computes target size real by proportions.
+  target size real. The **target size real** cell (row 2, col 2) is **read-only** and
+  live-computed by a getter (proportions), so there is no separate compute button.
 - A copy button (`PC_OT_CopyTarget`, `pc.copy_target`, icon `COPYDOWN`) writes the
-  target size real to `context.window_manager.clipboard`. Clipboard content is only
-  observable in a GUI session; background mode ignores writes.
+  target size real to `context.window_manager.clipboard`. It replaces the former
+  "Вычислить" button (a full-width "Скопировать в буфер" button) and a small copy
+  icon sits next to the target size real cell. Clipboard content is only observable
+  in a GUI session; background mode ignores writes.

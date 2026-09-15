@@ -143,7 +143,7 @@ class PC_PT_Main(bpy.types.Panel):
         box = layout.box()
         box.label(text="Пропорции", icon="DRIVER_DISTANCE")
         self._draw_table(box, props)
-        box.operator("pc.compute", text="Вычислить", icon="PLAY")
+        box.operator("pc.copy_target", text="Скопировать в буфер", icon="COPYDOWN")
 
     def _draw_table(self, box, props):
         row = box.row(align=True)
@@ -162,4 +162,3 @@ class PC_PT_Main(bpy.types.Panel):
         ro = row.row(align=True)
         ro.enabled = False
         ro.prop(props, "target_size_real", text="")
-        row.operator("pc.copy_target", text="", icon="COPYDOWN")
