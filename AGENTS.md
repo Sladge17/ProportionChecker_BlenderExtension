@@ -8,7 +8,8 @@ source of truth. Package layout:
 - `proportion_checker/core.py` — pure logic (grid shape/layout/axes, proportions,
   directory scan); no `bpy`, unit-testable.
 - `proportion_checker/operators.py` — `PC_OT_BuildGrid`, `PC_OT_Compute`,
-  `PC_OT_CopyTarget`, purge and shading helpers.
+  `PC_OT_CopyTarget`, `PC_OT_ActivateMeasure`, `PC_OT_RemoveMeasurements`,
+  purge and shading helpers.
 - `proportion_checker/ui.py` — `PC_Properties` (Scene) and the sidebar `PC_PT_Main`.
 - `proportion_checker/__init__.py` — `bl_info` and idempotent `register`/`unregister`.
 
@@ -16,8 +17,8 @@ Functionality:
 
 1. Load a folder path, scan it for raster images.
 2. Build a grid of planes (collection `"Reference"`), one plane per image, centered on
-   the world origin, filled row by row. Collection is **non-selectable** and the view
-   faces the grid perpendicularly, filling the viewport.
+   the world origin, filled row by row. The view faces the grid perpendicularly,
+   filling the viewport.
 3. Compute target real sizes via proportions and show them in the UI; the result can be
    copied to the clipboard.
 
@@ -65,13 +66,35 @@ Functionality:
 - All planes live in a single collection named exactly `"Reference"`.
 - The planes are **selectable** but transform-locked: each object gets
   `lock_location = lock_rotation = lock_scale = (True, True, True)` (movement,
-  rotation and scaling via the UI are disabled). Blender natively withholds the
-  translate gizmo on location-locked objects, but still draws rotate/scale gizmos
-  on rotation/scale-locked ones; to make the gizmo behaviour uniform a
-  `depsgraph_update_post` handler (registered in `__init__.py`,
-  `_gizmo_handler`) sets `space.show_gizmo_tool = False` while the **active
-  object is a grid plane** (marked with `pc.image_path`) and restores the saved
-  per-viewport value otherwise.
+  rotation and scaling via the UI are disabled). In Blender 5.x an object with
+  all transform axes locked natively hides the transform manipulator under
+  select-style tools (validated empirically: toggling
+  `show_gizmo_object_translate/rotate/scale` and `show_gizmo_tool` on a locked
+  plane changes nothing in the viewport under `builtin.select_box`). A transform
+  *tool* (e.g. `builtin.rotate`) can still force its tool gizmo on, so to make
+  the gizmo behaviour uniform a `depsgraph_update_post` handler (registered in
+  `__init__.py`, `_gizmo_handler`) calls `_sync_gizmos()`: while the **active
+  object is a grid plane** (marked with `pc.image_path`) it sets
+  `space.show_gizmo_tool = False` and saves/restores the per-viewport value
+  otherwise. **Exception:** while the active tool for that viewport is the
+  Measure tool (`builtin.measure`, checked via `_measure_tool_active`), the tool
+  gizmo is kept **visible** (otherwise the Measure tool raises "Gizmos hidden in
+  this view").
+  - Tool switches do **not** invalidate the dependency graph, so the sync would
+    otherwise go stale (e.g. Measure shown → plane stays active → back to a
+    transform tool → its gizmo lingers). Two extra drivers keep it correct:
+    (1) a `bpy.app.timers` poll (`_gizmo_poll`, every 0.01 s, only in GUI mode,
+    registered in `register()`/`unregister()`; note `bpy.app.timers.register`
+    may return `None` — store/re-check via `bpy.app.timers.is_registered`);
+    (2) `PC_OT_ActivateMeasure.execute` calls `_sync_gizmos()` directly after
+    `wm.tool_set_by_id` so the ruler shows immediately. `_sync_gizmos()` and
+    `_measure_tool_active()` live in `__init__.py` (import lazily from
+    `operators.py` to avoid a circular import).
+  - `WorkSpace.tools` yields only the **currently active** tool, not the full
+    tool set — treat it as a single-item probe.
+  - Comparing spaces/screens by `is` fails because RNA returns fresh wrappers —
+    use `as_pointer()` equality. A screen with no owning window (extra
+    workspaces) must be skipped when overriding context.
 - Scene shading: Solid mode with texture display.
 - After building, the view is set **perpendicular to the grid** filling the viewport:
   a custom ORTHO camera — `region_3d.view_rotation` derived from `axis_basis(axis)`
@@ -101,6 +124,19 @@ Functionality:
   live-computed by a getter (proportions), so there is no separate compute button.
 - A copy button (`PC_OT_CopyTarget`, `pc.copy_target`, icon `COPYDOWN`) writes the
   target size real to `context.window_manager.clipboard`. It replaces the former
-  "Вычислить" button (a full-width "Скопировать в буфер" button) and a small copy
-  icon sits next to the target size real cell. Clipboard content is only observable
-  in a GUI session; background mode ignores writes.
+  "Вычислить" button (a full-width "Скопировать в буфер" button; there is no small
+  copy icon next to the target cell). Clipboard content is only observable in a GUI
+  session; background mode ignores writes.
+- A "Измерения" box with two buttons: `PC_OT_ActivateMeasure`
+  (`pc.activate_measure`, icon `TOOL_SETTINGS`) — calls
+  `bpy.ops.wm.tool_set_by_id(name="builtin.measure", space_type="VIEW_3D")` inside a
+  `temp_override` on the first `VIEW_3D` area (searches all `bpy.data.screens`),
+  then `_sync_gizmos()` so the ruler is visible immediately. **Only screens with an
+  owning window are targets** (`win.screen.as_pointer() == screen.as_pointer()`);
+  the extra workspaces in `bpy.data.screens` (Animation, Modeling, ...) have no
+  window — passing them into `temp_override` without a `window` makes
+  `tool_set_by_id` a silent no-op, so they are skipped. `PC_OT_RemoveMeasurements`
+  (`pc.remove_measurements`, icon `TRASH`) — iterates `bpy.data.annotations` and
+  removes every layer with `layer.is_ruler == True` (that flag is set read-only by
+  the Measure tool; regular annotation layers are left alone). In headless mode
+  there are no windows, so `activate_measure` finds no `VIEW_3D` and cancels.

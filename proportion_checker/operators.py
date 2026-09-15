@@ -274,3 +274,82 @@ class PC_OT_CopyTarget(bpy.types.Operator):
         context.window_manager.clipboard = f"{value:g}"
         self.report({"INFO"}, f"Скопировано: {value:g}")
         return {"FINISHED"}
+
+
+def _remove_ruler_layers():
+    removed = 0
+    for annotation in bpy.data.annotations:
+        layers = getattr(annotation, "layers", None)
+        if layers is None:
+            continue
+        for layer in list(layers):
+            if getattr(layer, "is_ruler", False):
+                layers.remove(layer)
+                removed += 1
+    return removed
+
+
+class PC_OT_ActivateMeasure(bpy.types.Operator):
+    bl_idname = "pc.activate_measure"
+    bl_label = "Измерение"
+    bl_description = "Активирует инструмент Measure в окне 3D-вида"
+    bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.screen is not None
+
+    def execute(self, context):
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                if area.type != "VIEW_3D":
+                    continue
+                regions = [r for r in area.regions if r.type == "WINDOW"]
+                if not regions:
+                    continue
+                win = None
+                sp = screen.as_pointer()
+                for w in context.window_manager.windows:
+                    wscreen = getattr(w, "screen", None)
+                    if wscreen is not None and wscreen.as_pointer() == sp:
+                        win = w
+                        break
+                if win is None:
+                    continue
+                with bpy.context.temp_override(
+                    window=win,
+                    screen=screen,
+                    area=area,
+                    region=regions[0],
+                ):
+                    bpy.ops.wm.tool_set_by_id(
+                        name="builtin.measure", space_type="VIEW_3D"
+                    )
+                try:
+                    from . import _sync_gizmos
+
+                    _sync_gizmos()
+                except ImportError:
+                    pass
+                return {"FINISHED"}
+        self.report({"WARNING"}, "Не найдено окно 3D-вида")
+        return {"CANCELLED"}
+
+
+class PC_OT_RemoveMeasurements(bpy.types.Operator):
+    bl_idname = "pc.remove_measurements"
+    bl_label = "Удалить измерения"
+    bl_description = "Удаляет все измерения (аннотации-линейки) со сцены"
+    bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
+    def execute(self, context):
+        removed = _remove_ruler_layers()
+        self.report(
+            {"INFO"},
+            f"Измерения удалено: {removed}" if removed else "Измерений нет",
+        )
+        return {"FINISHED"}

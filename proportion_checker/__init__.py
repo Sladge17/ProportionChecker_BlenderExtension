@@ -86,10 +86,36 @@ def _unregister_class(cls):
 
 
 _GIZMO_HANDLER = None
+_GIZMO_POLL_HANDLER = None
+_GIZMO_POLL_INTERVAL = 0.01
 _GIZMO_SAVED = {}
 
 
-def _gizmo_handler(scene, depsgraph):
+def _measure_tool_active(space):
+    import bpy
+
+    sp = space.as_pointer()
+    workspaces = []
+    for wm in bpy.data.window_managers:
+        for win in wm.windows:
+            screen = getattr(win, "screen", None)
+            ws = getattr(win, "workspace", None)
+            if screen is None or ws is None:
+                continue
+            for area in screen.areas:
+                for s in area.spaces:
+                    if s.as_pointer() == sp:
+                        workspaces.append(ws)
+    for ws in workspaces:
+        for tool in getattr(ws, "tools", ()):
+            if getattr(tool, "space_type", "") != "VIEW_3D":
+                continue
+            if "measure" in getattr(tool, "idname", ""):
+                return True
+    return False
+
+
+def _sync_gizmos():
     import bpy
 
     active = bpy.context.active_object
@@ -108,13 +134,24 @@ def _gizmo_handler(scene, depsgraph):
             if is_plane:
                 if key not in _GIZMO_SAVED:
                     _GIZMO_SAVED[key] = space.show_gizmo_tool
-                space.show_gizmo_tool = False
+                space.show_gizmo_tool = _measure_tool_active(space)
             elif key in _GIZMO_SAVED:
                 space.show_gizmo_tool = _GIZMO_SAVED.pop(key)
 
 
+def _gizmo_handler(scene, depsgraph):
+    _sync_gizmos()
+
+
+def _gizmo_poll():
+    # Switching the active tool does not invalidate the dependency graph, so
+    # re-sync from a timer to avoid stale tool-gizmo visibility.
+    _sync_gizmos()
+    return _GIZMO_POLL_INTERVAL
+
+
 def register():
-    global _GIZMO_HANDLER
+    global _GIZMO_HANDLER, _GIZMO_POLL_HANDLER
     import bpy
 
     operators, ui = _modules()
@@ -126,6 +163,8 @@ def register():
         operators.PC_OT_BuildGrid,
         operators.PC_OT_Compute,
         operators.PC_OT_CopyTarget,
+        operators.PC_OT_ActivateMeasure,
+        operators.PC_OT_RemoveMeasurements,
         ui.PC_PT_Main,
     ):
         _register_class(cls)
@@ -133,12 +172,26 @@ def register():
     if _GIZMO_HANDLER is None:
         _GIZMO_HANDLER = bpy.app.handlers.persistent(_gizmo_handler)
         bpy.app.handlers.depsgraph_update_post.append(_GIZMO_HANDLER)
+    if not bpy.app.background and _GIZMO_POLL_HANDLER is None:
+        try:
+            bpy.app.timers.register(_gizmo_poll, first_interval=_GIZMO_POLL_INTERVAL)
+        except ValueError:
+            pass
+        if bpy.app.timers.is_registered(_gizmo_poll):
+            _GIZMO_POLL_HANDLER = _gizmo_poll
 
 
 def unregister():
-    global _GIZMO_HANDLER
+    global _GIZMO_HANDLER, _GIZMO_POLL_HANDLER
     import bpy
 
+    if _GIZMO_POLL_HANDLER is not None:
+        try:
+            if bpy.app.timers.is_registered(_GIZMO_POLL_HANDLER):
+                bpy.app.timers.unregister(_GIZMO_POLL_HANDLER)
+        except Exception:
+            pass
+        _GIZMO_POLL_HANDLER = None
     if _GIZMO_HANDLER is not None:
         try:
             bpy.app.handlers.depsgraph_update_post.remove(_GIZMO_HANDLER)
@@ -154,6 +207,8 @@ def unregister():
             operators.PC_OT_BuildGrid,
             operators.PC_OT_Compute,
             operators.PC_OT_CopyTarget,
+            operators.PC_OT_ActivateMeasure,
+            operators.PC_OT_RemoveMeasurements,
             ui.PC_PT_Main,
         )
     ):

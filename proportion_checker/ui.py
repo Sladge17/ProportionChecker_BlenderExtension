@@ -145,6 +145,12 @@ class PC_PT_Main(bpy.types.Panel):
         self._draw_table(box, props)
         box.operator("pc.copy_target", text="Скопировать в буфер", icon="COPYDOWN")
 
+        box = layout.box()
+        box.label(text="Измерения", icon="TOOL_SETTINGS")
+        row = box.row(align=True)
+        row.operator("pc.activate_measure", text="Инструмент Measure", icon="TOOL_SETTINGS")
+        row.operator("pc.remove_measurements", text="Удалить", icon="TRASH")
+
     def _draw_table(self, box, props):
         row = box.row(align=True)
 
