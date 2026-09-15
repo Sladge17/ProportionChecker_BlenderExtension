@@ -8,8 +8,7 @@ source of truth. Package layout:
 - `proportion_checker/core.py` — pure logic (grid shape/layout/axes, proportions,
   directory scan); no `bpy`, unit-testable.
 - `proportion_checker/operators.py` — `PC_OT_BuildGrid`, `PC_OT_Compute`,
-  `PC_OT_CopyTarget`, `PC_OT_ActivateMeasure`, `PC_OT_RemoveMeasurements`,
-  purge and shading helpers.
+  `PC_OT_CopyTarget`, purge and shading helpers.
 - `proportion_checker/ui.py` — `PC_Properties` (Scene) and the sidebar `PC_PT_Main`.
 - `proportion_checker/__init__.py` — `bl_info` and idempotent `register`/`unregister`.
 
@@ -82,14 +81,11 @@ Functionality:
   this view").
   - Tool switches do **not** invalidate the dependency graph, so the sync would
     otherwise go stale (e.g. Measure shown → plane stays active → back to a
-    transform tool → its gizmo lingers). Two extra drivers keep it correct:
-    (1) a `bpy.app.timers` poll (`_gizmo_poll`, every 0.01 s, only in GUI mode,
-    registered in `register()`/`unregister()`; note `bpy.app.timers.register`
-    may return `None` — store/re-check via `bpy.app.timers.is_registered`);
-    (2) `PC_OT_ActivateMeasure.execute` calls `_sync_gizmos()` directly after
-    `wm.tool_set_by_id` so the ruler shows immediately. `_sync_gizmos()` and
-    `_measure_tool_active()` live in `__init__.py` (import lazily from
-    `operators.py` to avoid a circular import).
+    transform tool → its gizmo lingers). A `bpy.app.timers` poll (`_gizmo_poll`,
+    every 0.01 s, only in GUI mode, registered in `register()`/`unregister()`;
+    note `bpy.app.timers.register` may return `None` — store/re-check via
+    `bpy.app.timers.is_registered`) keeps `_sync_gizmos()` correct across tool
+    switches. `_sync_gizmos()` and `_measure_tool_active()` live in `__init__.py`.
   - `WorkSpace.tools` yields only the **currently active** tool, not the full
     tool set — treat it as a single-item probe.
   - Comparing spaces/screens by `is` fails because RNA returns fresh wrappers —
@@ -127,16 +123,3 @@ Functionality:
   "Вычислить" button (a full-width "Скопировать в буфер" button; there is no small
   copy icon next to the target cell). Clipboard content is only observable in a GUI
   session; background mode ignores writes.
-- A "Измерения" box with two buttons: `PC_OT_ActivateMeasure`
-  (`pc.activate_measure`, icon `TOOL_SETTINGS`) — calls
-  `bpy.ops.wm.tool_set_by_id(name="builtin.measure", space_type="VIEW_3D")` inside a
-  `temp_override` on the first `VIEW_3D` area (searches all `bpy.data.screens`),
-  then `_sync_gizmos()` so the ruler is visible immediately. **Only screens with an
-  owning window are targets** (`win.screen.as_pointer() == screen.as_pointer()`);
-  the extra workspaces in `bpy.data.screens` (Animation, Modeling, ...) have no
-  window — passing them into `temp_override` without a `window` makes
-  `tool_set_by_id` a silent no-op, so they are skipped. `PC_OT_RemoveMeasurements`
-  (`pc.remove_measurements`, icon `TRASH`) — iterates `bpy.data.annotations` and
-  removes every layer with `layer.is_ruler == True` (that flag is set read-only by
-  the Measure tool; regular annotation layers are left alone). In headless mode
-  there are no windows, so `activate_measure` finds no `VIEW_3D` and cancels.

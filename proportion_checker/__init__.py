@@ -163,8 +163,6 @@ def register():
         operators.PC_OT_BuildGrid,
         operators.PC_OT_Compute,
         operators.PC_OT_CopyTarget,
-        operators.PC_OT_ActivateMeasure,
-        operators.PC_OT_RemoveMeasurements,
         ui.PC_PT_Main,
     ):
         _register_class(cls)
@@ -207,8 +205,6 @@ def unregister():
             operators.PC_OT_BuildGrid,
             operators.PC_OT_Compute,
             operators.PC_OT_CopyTarget,
-            operators.PC_OT_ActivateMeasure,
-            operators.PC_OT_RemoveMeasurements,
             ui.PC_PT_Main,
         )
     ):
