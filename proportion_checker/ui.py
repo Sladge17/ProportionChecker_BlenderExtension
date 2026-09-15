@@ -147,18 +147,20 @@ class PC_PT_Main(bpy.types.Panel):
 
     def _draw_table(self, box, props):
         row = box.row(align=True)
-        row.label(text="")
-        row.label(text="На изображении")
-        row.label(text="Реальный")
 
-        row = box.row(align=True)
-        row.label(text="Опорный")
-        row.prop(props, "ref_size_img", text="")
-        row.prop(props, "ref_size_real", text="")
+        col_label = row.column(align=True)
+        col_label.label(text="")
+        col_label.label(text="Опорный")
+        col_label.label(text="Целевой")
 
-        row = box.row(align=True)
-        row.label(text="Целевой")
-        row.prop(props, "target_size_img", text="")
-        ro = row.row(align=True)
-        ro.enabled = False
-        ro.prop(props, "target_size_real", text="")
+        col_img = row.column(align=True)
+        col_img.label(text="На изображении")
+        col_img.prop(props, "ref_size_img", text="")
+        col_img.prop(props, "target_size_img", text="")
+
+        col_real = row.column(align=True)
+        col_real.label(text="Реальный")
+        col_real.prop(props, "ref_size_real", text="")
+        ro = col_real.row()
+        ro.alignment = "CENTER"
+        ro.label(text=f"{props.target_size_real:.6g}")
