@@ -65,7 +65,13 @@ Functionality:
 - All planes live in a single collection named exactly `"Reference"`.
 - The planes are **selectable** but transform-locked: each object gets
   `lock_location = lock_rotation = lock_scale = (True, True, True)` (movement,
-  rotation and scaling via the UI are disabled).
+  rotation and scaling via the UI are disabled). Blender natively withholds the
+  translate gizmo on location-locked objects, but still draws rotate/scale gizmos
+  on rotation/scale-locked ones; to make the gizmo behaviour uniform a
+  `depsgraph_update_post` handler (registered in `__init__.py`,
+  `_gizmo_handler`) sets `space.show_gizmo_tool = False` while the **active
+  object is a grid plane** (marked with `pc.image_path`) and restores the saved
+  per-viewport value otherwise.
 - Scene shading: Solid mode with texture display.
 - After building, the view is set **perpendicular to the grid** filling the viewport:
   a custom ORTHO camera — `region_3d.view_rotation` derived from `axis_basis(axis)`

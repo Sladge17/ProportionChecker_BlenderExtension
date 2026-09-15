@@ -85,7 +85,36 @@ def _unregister_class(cls):
         pass
 
 
+_GIZMO_HANDLER = None
+_GIZMO_SAVED = {}
+
+
+def _gizmo_handler(scene, depsgraph):
+    import bpy
+
+    active = bpy.context.active_object
+    is_plane = active is not None and "pc.image_path" in active
+    screen = bpy.context.screen
+    if screen is None:
+        return
+
+    for area in screen.areas:
+        if area.type != "VIEW_3D":
+            continue
+        for space in area.spaces:
+            if space.type != "VIEW_3D":
+                continue
+            key = space.as_pointer()
+            if is_plane:
+                if key not in _GIZMO_SAVED:
+                    _GIZMO_SAVED[key] = space.show_gizmo_tool
+                space.show_gizmo_tool = False
+            elif key in _GIZMO_SAVED:
+                space.show_gizmo_tool = _GIZMO_SAVED.pop(key)
+
+
 def register():
+    global _GIZMO_HANDLER
     import bpy
 
     operators, ui = _modules()
@@ -101,9 +130,22 @@ def register():
     ):
         _register_class(cls)
 
+    if _GIZMO_HANDLER is None:
+        _GIZMO_HANDLER = bpy.app.handlers.persistent(_gizmo_handler)
+        bpy.app.handlers.depsgraph_update_post.append(_GIZMO_HANDLER)
+
 
 def unregister():
+    global _GIZMO_HANDLER
     import bpy
+
+    if _GIZMO_HANDLER is not None:
+        try:
+            bpy.app.handlers.depsgraph_update_post.remove(_GIZMO_HANDLER)
+        except ValueError:
+            pass
+        _GIZMO_HANDLER = None
+    _GIZMO_SAVED.clear()
 
     operators, ui = _modules()
 
