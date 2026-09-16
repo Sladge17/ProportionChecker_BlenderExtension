@@ -81,13 +81,13 @@ class PC_Properties(bpy.types.PropertyGroup):
         update=_rebuild_grid,
     )
     ref_size_img: bpy.props.FloatProperty(
-        name="Опорный размер на изображении", default=1.0
+        name="Опорный размер на изображении", default=0.0, min=0.0
     )
     ref_size_real: bpy.props.FloatProperty(
-        name="Опорный размер, реальный", default=1.0
+        name="Опорный размер, реальный", default=0.0, min=0.0
     )
     target_size_img: bpy.props.FloatProperty(
-        name="Целевой размер на изображении", default=1.0
+        name="Целевой размер на изображении", default=0.0, min=0.0
     )
 
     def get_target_size_real(self):
