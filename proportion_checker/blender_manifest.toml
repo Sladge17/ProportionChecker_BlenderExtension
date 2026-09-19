@@ -3,7 +3,7 @@ schema_version = "1.0.0"
 id = "proportion_checker"
 version = "1.0.0"
 name = "ProportionChecker"
-tagline = "Builds a grid of image planes and computes target real sizes"
+tagline = "Computes target real sizes"
 maintainer = "ProportionChecker"
 type = "add-on"
 
