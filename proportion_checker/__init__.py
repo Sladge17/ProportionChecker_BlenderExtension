@@ -3,10 +3,10 @@ bl_info = {
     "author": "ProportionChecker",
     "version": (0, 1, 0),
     "blender": (5, 0, 0),
-    "location": "3D View > Sidebar > Reference",
+    "location": "3D View > Sidebar > ReferenceTools",
     "description": (
-        "Строит сетку плоскостей с изображениями из выбранной директории "
-        "и вычисляет целевые размеры методом пропорций"
+        "Builds a grid of planes with images from the selected directory "
+        "and computes target sizes via proportions"
     ),
     "category": "Mesh",
 }
@@ -56,8 +56,8 @@ def _modules():
         root = _find_package_root()
         if root is None:
             raise ImportError(
-                "Не удалось найти пакет 'proportion_checker'. Запускайте "
-                "__init__.py из папки пакета или установите аддон через "
+                "Could not find the 'proportion_checker' package. Run "
+                "__init__.py from the package folder or install the add-on via "
                 "Preferences > Add-ons."
             )
         if root not in sys.path:

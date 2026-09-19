@@ -37,57 +37,57 @@ def _count_images(path):
 
 class PC_Properties(bpy.types.PropertyGroup):
     directory: bpy.props.StringProperty(
-        name="Директория", subtype="DIR_PATH", default="", update=_rebuild_grid_framing
+        name="Directory", subtype="DIR_PATH", default="", update=_rebuild_grid_framing
     )
     plane_axis: bpy.props.EnumProperty(
-        name="Направление нормали",
-        description="Ось, вдоль которой направлена нормаль плоскостей сетки",
+        name="View Direction",
+        description="Axis along which the normals of the grid planes point",
         default="X",
         update=_rebuild_grid_framing,
         items=(
-            ("X", "X", "Нормаль вдоль оси X"),
-            ("Y", "Y", "Нормаль вдоль оси Y"),
-            ("Z", "Z", "Нормаль вдоль оси Z"),
+            ("X", "X", "Normal along the X axis"),
+            ("Y", "Y", "Normal along the Y axis"),
+            ("Z", "Z", "Normal along the Z axis"),
         ),
     )
     plane_height: bpy.props.FloatProperty(
-        name="Высота плоскости",
+        name="Image Height",
         default=1.0,
         min=0.0001,
         unit="LENGTH",
         update=_rebuild_grid,
     )
     gap_h: bpy.props.FloatProperty(
-        name="По горизонтали",
-        description="Расстояние между плоскостями по горизонтали",
+        name="Horizontal",
+        description="Horizontal distance between planes",
         default=0.0,
         min=0.0,
         unit="LENGTH",
         update=_rebuild_grid,
     )
     gap_v: bpy.props.FloatProperty(
-        name="По вертикали",
-        description="Расстояние между плоскостями по вертикали",
+        name="Vertical",
+        description="Vertical distance between planes",
         default=0.0,
         min=0.0,
         unit="LENGTH",
         update=_rebuild_grid,
     )
     offset: bpy.props.FloatProperty(
-        name="Смещение вдоль нормали",
-        description="Смещение всей сетки вдоль выбранного направления нормали",
+        name="View Offset",
+        description="Offset of the whole grid along the selected normal direction",
         default=0.0,
         unit="LENGTH",
         update=_rebuild_grid,
     )
     ref_size_img: bpy.props.FloatProperty(
-        name="Опорный размер на изображении", default=0.0, min=0.0
+        name="Source size on image", default=0.0, min=0.0
     )
     ref_size_real: bpy.props.FloatProperty(
-        name="Опорный размер, реальный", default=0.0, min=0.0
+        name="Source size real", default=0.0, min=0.0
     )
     target_size_img: bpy.props.FloatProperty(
-        name="Целевой размер на изображении", default=0.0, min=0.0
+        name="Target size on image", default=0.0, min=0.0
     )
 
     def get_target_size_real(self):
@@ -99,8 +99,8 @@ class PC_Properties(bpy.types.PropertyGroup):
             return 0.0
 
     target_size_real: bpy.props.FloatProperty(
-        name="Целевой размер, реальный",
-        description="Вычисляется автоматически (только для чтения)",
+        name="Target size real",
+        description="Computed automatically (read-only)",
         get=get_target_size_real,
     )
 
@@ -110,7 +110,7 @@ class PC_PT_Main(bpy.types.Panel):
     bl_idname = "PC_PT_Main"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Reference"
+    bl_category = "ReferenceTools"
 
     @classmethod
     def poll(cls, context):
@@ -121,45 +121,49 @@ class PC_PT_Main(bpy.types.Panel):
         layout = self.layout
 
         box = layout.box()
-        box.label(text="Исходные данные", icon="FILE_FOLDER")
+        box.label(text="Reference Images", icon="FILE_FOLDER")
         row = box.row(align=True)
         row.prop(props, "directory", text="")
-        box.label(text=f"Изображений: {_count_images(props.directory)}")
+        box.label(text=f"Images: {_count_images(props.directory)}")
 
         box = layout.box()
-        box.label(text="Сетка плоскостей", icon="GRID")
+        box.label(text="Images Grid", icon="GRID")
         box.prop(props, "plane_height")
-        box.label(text="Направление нормали:")
+        box.label(text="View Direction:")
         row = box.row(align=True)
         row.prop_enum(props, "plane_axis", "X")
         row.prop_enum(props, "plane_axis", "Y")
         row.prop_enum(props, "plane_axis", "Z")
-        box.label(text="Расстояние между плоскостями:")
+        box.label(text="Distance between images:")
         row = box.row(align=True)
         row.prop(props, "gap_h")
         row.prop(props, "gap_v")
         box.prop(props, "offset")
 
         box = layout.box()
-        box.label(text="Пропорции", icon="DRIVER_DISTANCE")
+        box.label(text="Dimensions", icon="DRIVER_DISTANCE")
         self._draw_table(box, props)
-        box.operator("pc.copy_target", text="Скопировать в буфер", icon="COPYDOWN")
+        box.operator("pc.copy_target", text="Copy to Buffer", icon="COPYDOWN")
 
     def _draw_table(self, box, props):
         row = box.row(align=True)
 
         col_label = row.column(align=True)
         col_label.label(text="")
-        col_label.label(text="Опорный")
-        col_label.label(text="Целевой")
+        col_label.label(text="Source")
+        col_label.label(text="Target")
 
         col_img = row.column(align=True)
-        col_img.label(text="На изображении")
+        hdr_img = col_img.row()
+        hdr_img.alignment = "CENTER"
+        hdr_img.label(text="On image")
         col_img.prop(props, "ref_size_img", text="")
         col_img.prop(props, "target_size_img", text="")
 
         col_real = row.column(align=True)
-        col_real.label(text="Реальный")
+        hdr_real = col_real.row()
+        hdr_real.alignment = "CENTER"
+        hdr_real.label(text="Real")
         col_real.prop(props, "ref_size_real", text="")
         ro = col_real.row()
         ro.alignment = "CENTER"

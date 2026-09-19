@@ -120,6 +120,6 @@ Functionality:
   live-computed by a getter (proportions), so there is no separate compute button.
 - A copy button (`PC_OT_CopyTarget`, `pc.copy_target`, icon `COPYDOWN`) writes the
   target size real to `context.window_manager.clipboard`. It replaces the former
-  "Вычислить" button (a full-width "Скопировать в буфер" button; there is no small
+  "Compute" button (a full-width "Copy to Clipboard" button; there is no small
   copy icon next to the target cell). Clipboard content is only observable in a GUI
   session; background mode ignores writes.

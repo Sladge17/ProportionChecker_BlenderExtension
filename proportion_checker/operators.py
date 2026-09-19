@@ -159,12 +159,12 @@ def build_grid(context, report=None, frame=False):
             width = plane_width(w, h, props.plane_height)
         except Exception as exc:
             skipped += 1
-            _report(report, "WARNING", f"Пропущено {os.path.basename(fp)}: {exc}")
+            _report(report, "WARNING", f"Skipped {os.path.basename(fp)}: {exc}")
             continue
         planes.append((fp, img, width))
 
     if not planes:
-        _report(report, "ERROR", "Не удалось загрузить ни одного изображения")
+        _report(report, "ERROR", "Could not load any image")
         return 0
 
     _purge_addon_data()
@@ -208,15 +208,15 @@ def build_grid(context, report=None, frame=False):
     _report(
         report,
         "INFO",
-        f"Построено плоскостей: {len(planes)} (пропущено: {skipped})",
+        f"Planes built: {len(planes)} (skipped: {skipped})",
     )
     return len(planes)
 
 
 class PC_OT_BuildGrid(bpy.types.Operator):
     bl_idname = "pc.build_grid"
-    bl_label = "Построить сетку (перестроение автоматическое)"
-    bl_description = "Сканирует директорию и строит сетку плоскостей с изображениями"
+    bl_label = "Build Grid (rebuild is automatic)"
+    bl_description = "Scans the directory and builds a grid of planes with images"
     bl_options = {"REGISTER"}
 
     @classmethod
@@ -231,8 +231,8 @@ class PC_OT_BuildGrid(bpy.types.Operator):
 
 class PC_OT_Compute(bpy.types.Operator):
     bl_idname = "pc.compute"
-    bl_label = "Вычислить"
-    bl_description = "Вычисляет целевой размер (реальный) методом пропорций"
+    bl_label = "Compute"
+    bl_description = "Computes the target (real) size via proportions"
     bl_options = {"REGISTER"}
 
     @classmethod
@@ -248,14 +248,14 @@ class PC_OT_Compute(bpy.types.Operator):
         except ValueError as exc:
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
-        self.report({"INFO"}, f"Целевой реальный размер: {value:.6g}")
+        self.report({"INFO"}, f"Target real size: {value:.6g}")
         return {"FINISHED"}
 
 
 class PC_OT_CopyTarget(bpy.types.Operator):
     bl_idname = "pc.copy_target"
-    bl_label = "Копировать"
-    bl_description = "Копирует целевой реальный размер в буфер обмена"
+    bl_label = "Copy"
+    bl_description = "Copies the target real size to the buffer"
     bl_options = {"REGISTER"}
 
     @classmethod
@@ -272,5 +272,5 @@ class PC_OT_CopyTarget(bpy.types.Operator):
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
         context.window_manager.clipboard = f"{value:g}"
-        self.report({"INFO"}, f"Скопировано: {value:g}")
+        self.report({"INFO"}, f"Copied: {value:g}")
         return {"FINISHED"}
