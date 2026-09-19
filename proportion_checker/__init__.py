@@ -162,6 +162,7 @@ def register():
     for cls in (
         operators.PC_OT_BuildGrid,
         operators.PC_OT_Compute,
+        operators.PC_OT_ClearDimensions,
         operators.PC_OT_CopyTarget,
         ui.PC_PT_Main,
     ):
@@ -204,6 +205,7 @@ def unregister():
         (
             operators.PC_OT_BuildGrid,
             operators.PC_OT_Compute,
+            operators.PC_OT_ClearDimensions,
             operators.PC_OT_CopyTarget,
             ui.PC_PT_Main,
         )

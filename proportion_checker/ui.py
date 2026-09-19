@@ -143,6 +143,7 @@ class PC_PT_Main(bpy.types.Panel):
         box = layout.box()
         box.label(text="Dimensions", icon="DRIVER_DISTANCE")
         self._draw_table(box, props)
+        box.operator("pc.clear_dimensions", text="Clear", icon="X")
         box.operator("pc.copy_target", text="Copy to Buffer", icon="COPYDOWN")
 
     def _draw_table(self, box, props):

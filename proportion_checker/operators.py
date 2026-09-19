@@ -252,6 +252,25 @@ class PC_OT_Compute(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class PC_OT_ClearDimensions(bpy.types.Operator):
+    bl_idname = "pc.clear_dimensions"
+    bl_label = "Clear"
+    bl_description = "Resets all dimension values to their defaults"
+    bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
+    def execute(self, context):
+        props = context.scene.pc
+        props.ref_size_img = 0.0
+        props.ref_size_real = 0.0
+        props.target_size_img = 0.0
+        self.report({"INFO"}, "Cleared")
+        return {"FINISHED"}
+
+
 class PC_OT_CopyTarget(bpy.types.Operator):
     bl_idname = "pc.copy_target"
     bl_label = "Copy"
