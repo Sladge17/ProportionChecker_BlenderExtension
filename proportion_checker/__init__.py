@@ -1,17 +1,3 @@
-bl_info = {
-    "name": "ProportionChecker",
-    "author": "ProportionChecker",
-    "version": (0, 1, 0),
-    "blender": (5, 0, 0),
-    "location": "3D View > Sidebar > ReferenceTools",
-    "description": (
-        "Builds a grid of planes with images from the selected directory "
-        "and computes target sizes via proportions"
-    ),
-    "category": "Mesh",
-}
-
-
 def _find_package_root():
     import os
 

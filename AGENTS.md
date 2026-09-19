@@ -10,7 +10,9 @@ source of truth. Package layout:
 - `proportion_checker/operators.py` — `PC_OT_BuildGrid`, `PC_OT_Compute`,
   `PC_OT_CopyTarget`, purge and shading helpers.
 - `proportion_checker/ui.py` — `PC_Properties` (Scene) and the sidebar `PC_PT_Main`.
-- `proportion_checker/__init__.py` — `bl_info` and idempotent `register`/`unregister`.
+- `proportion_checker/__init__.py` — idempotent `register`/`unregister` (no `bl_info` —
+  metadata lives in `blender_manifest.toml`).
+- `proportion_checker/blender_manifest.toml` — manifest with the add-on metadata
 
 Functionality:
 
@@ -31,7 +33,8 @@ Functionality:
   (`execute_blender_code`, scene/object inspection, screenshots) to verify bpy code and
   scene state; it's much faster than restarting headless runs.
 - Headless check: `blender --background --python-expr "..."`.
-- Add-on must be installable via `Preferences > Add-ons` (bl_info + register/unregister).
+- Add-on is installed as a Blender extension: `Preferences > Add-ons` → «Install from
+  Disk» (needs `blender_manifest.toml` + idempotent `register`/`unregister`).
 - Dev-run from a Text Editor buffer (Run Script) sets `__file__` to a fake path like
   `/__init__.py` even when the text was opened from disk, so the package is located via
   `_find_package_root()`: it walks up from `__file__`'s dir, `os.getcwd()`, the current

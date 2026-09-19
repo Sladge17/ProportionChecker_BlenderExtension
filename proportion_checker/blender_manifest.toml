@@ -1,0 +1,27 @@
+schema_version = "1.0.0"
+
+id = "proportion_checker"
+version = "1.0.0"
+name = "ProportionChecker"
+tagline = "Builds a grid of image planes and computes target real sizes"
+maintainer = "ProportionChecker"
+type = "add-on"
+
+blender_version_min = "5.0.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+tags = ["3D View", "Mesh"]
+
+[permissions]
+files = "Scans a folder for reference images and loads them as planes"
+clipboard = "Copies the computed target real size to the system buffer"
+
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  ".git",
+  "*.zip",
+]
