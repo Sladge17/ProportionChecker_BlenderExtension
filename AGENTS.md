@@ -15,7 +15,7 @@ source of truth. Package layout:
 Functionality:
 
 1. Load a folder path, scan it for raster images.
-2. Build a grid of planes (collection `"Reference"`), one plane per image, centered on
+2. Build a grid of planes (collection `"ReferenceImages"`), one plane per image, centered on
    the world origin, filled row by row. The view faces the grid perpendicularly,
    filling the viewport.
 3. Compute target real sizes via proportions and show them in the UI; the result can be
@@ -62,7 +62,7 @@ Functionality:
   differ from a naive rotation chain — validate every new euler against
   `obj.matrix_world` (or `axis_basis`) in live Blender.
 - One dedicated material per plane; the image is assigned to **Base Color**.
-- All planes live in a single collection named exactly `"Reference"`.
+- All planes live in a single collection named exactly `"ReferenceImages"`.
 - The planes are **selectable** but transform-locked: each object gets
   `lock_location = lock_rotation = lock_scale = (True, True, True)` (movement,
   rotation and scaling via the UI are disabled). In Blender 5.x an object with

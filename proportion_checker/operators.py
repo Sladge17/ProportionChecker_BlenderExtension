@@ -53,9 +53,9 @@ def _build_material(name, image):
 
 
 def _ensure_collection(context):
-    col = bpy.data.collections.get("Reference")
+    col = bpy.data.collections.get("ReferenceImages")
     if col is None:
-        col = bpy.data.collections.new("Reference")
+        col = bpy.data.collections.new("ReferenceImages")
     if context.scene.collection is not None and col.name not in context.scene.collection.children:
         context.scene.collection.children.link(col)
     return col
