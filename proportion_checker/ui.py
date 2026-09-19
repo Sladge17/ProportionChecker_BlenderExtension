@@ -1,5 +1,3 @@
-import os
-
 import bpy
 
 from .core import compute_target_real, scan_directory
