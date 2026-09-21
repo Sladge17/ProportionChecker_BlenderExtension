@@ -215,7 +215,7 @@ def build_grid(context, report=None, frame=False):
 
 class PC_OT_BuildGrid(bpy.types.Operator):
     bl_idname = "pc.build_grid"
-    bl_label = "Build Grid (rebuild is automatic)"
+    bl_label = "Build grid (rebuild is automatic)"
     bl_description = "Scans the directory and builds a grid of planes with images"
     bl_options = {"REGISTER"}
 

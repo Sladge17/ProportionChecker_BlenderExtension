@@ -38,7 +38,7 @@ class PC_Properties(bpy.types.PropertyGroup):
         name="Directory", subtype="DIR_PATH", default="", update=_rebuild_grid_framing
     )
     plane_axis: bpy.props.EnumProperty(
-        name="View Direction",
+        name="View direction",
         description="Axis along which the normals of the grid planes point",
         default="X",
         update=_rebuild_grid_framing,
@@ -49,7 +49,7 @@ class PC_Properties(bpy.types.PropertyGroup):
         ),
     )
     plane_height: bpy.props.FloatProperty(
-        name="Image Height",
+        name="Image height",
         default=1.0,
         min=0.0001,
         unit="LENGTH",
@@ -72,7 +72,7 @@ class PC_Properties(bpy.types.PropertyGroup):
         update=_rebuild_grid,
     )
     offset: bpy.props.FloatProperty(
-        name="View Offset",
+        name="View offset",
         description="Offset of the whole grid along the selected normal direction",
         default=0.0,
         unit="LENGTH",
@@ -119,15 +119,15 @@ class PC_PT_Main(bpy.types.Panel):
         layout = self.layout
 
         box = layout.box()
-        box.label(text="Reference Images", icon="FILE_FOLDER")
+        box.label(text="Reference folder", icon="FILE_FOLDER")
         row = box.row(align=True)
         row.prop(props, "directory", text="")
         box.label(text=f"Images: {_count_images(props.directory)}")
 
         box = layout.box()
-        box.label(text="Images Grid", icon="GRID")
+        box.label(text="Images grid", icon="GRID")
         box.prop(props, "plane_height")
-        box.label(text="View Direction:")
+        box.label(text="View direction:")
         row = box.row(align=True)
         row.prop_enum(props, "plane_axis", "X")
         row.prop_enum(props, "plane_axis", "Y")
@@ -142,7 +142,7 @@ class PC_PT_Main(bpy.types.Panel):
         box.label(text="Dimensions", icon="DRIVER_DISTANCE")
         self._draw_table(box, props)
         box.operator("pc.clear_dimensions", text="Clear", icon="X")
-        box.operator("pc.copy_target", text="Copy to Buffer", icon="COPYDOWN")
+        box.operator("pc.copy_target", text="Copy to buffer", icon="COPYDOWN")
 
     def _draw_table(self, box, props):
         row = box.row(align=True)
