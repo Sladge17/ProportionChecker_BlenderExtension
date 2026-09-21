@@ -166,4 +166,4 @@ class PC_PT_Main(bpy.types.Panel):
         col_real.prop(props, "ref_size_real", text="")
         ro = col_real.row()
         ro.alignment = "CENTER"
-        ro.label(text=f"{props.target_size_real:.6g}")
+        ro.label(text=f"{props.target_size_real:.2f}")

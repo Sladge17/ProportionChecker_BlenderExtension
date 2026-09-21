@@ -290,6 +290,6 @@ class PC_OT_CopyTarget(bpy.types.Operator):
         except ValueError as exc:
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
-        context.window_manager.clipboard = f"{value:g}"
-        self.report({"INFO"}, f"Copied: {value:g}")
+        context.window_manager.clipboard = f"{value:.2f}"
+        self.report({"INFO"}, f"Copied: {value:.2f}")
         return {"FINISHED"}
